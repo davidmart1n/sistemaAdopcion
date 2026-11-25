@@ -1,7 +1,61 @@
 const urlMascotas = "https://6b06ea8157fa1297bb566cd8.mockapi.io/pets";
+
 const listaMascotas = document.getElementById("lista-mascotas");
 const plantillaMascota = document.getElementById("plantilla-mascota");
 const mensajeCatalogo = document.getElementById("mensaje-catalogo");
+const formularioFiltros = document.getElementById("form-filtros");
+
+let mascotasDisponibles = [];
+
+const mostrarMascotas = (mascotas) => {
+  listaMascotas.replaceChildren();
+
+  for (const mascota of mascotas) {
+    const tarjeta = plantillaMascota.content.cloneNode(true);
+    const foto = tarjeta.querySelector(".mascota-foto");
+    const tamano = mascota.tamano === "pequeno" ? "pequeño" : mascota.tamano;
+
+    foto.src = mascota.foto;
+    foto.alt = `Foto de ${mascota.nombre}`;
+
+    tarjeta.querySelector(".mascota-nombre").textContent = mascota.nombre;
+    tarjeta.querySelector(".mascota-especie").textContent = mascota.especie;
+    tarjeta.querySelector(".mascota-edad").textContent = `Edad: ${mascota.edad} años`;
+    tarjeta.querySelector(".mascota-tamano").textContent = `Tamaño: ${tamano}`;
+    tarjeta.querySelector(".mascota-vacuna").textContent = mascota.vacuna
+      ? "Vacunada"
+      : "Sin vacuna registrada";
+
+    tarjeta.querySelector(".boton-postular").dataset.petId = mascota.id;
+    listaMascotas.appendChild(tarjeta);
+  }
+};
+
+const aplicarFiltros = () => {
+  const datos = new FormData(formularioFiltros);
+  const especie = datos.get("especie");
+  const tamano = datos.get("tamano");
+  const edadMaxima = datos.get("edad");
+
+  const resultados = mascotasDisponibles.filter((mascota) => {
+    const coincideEspecie = !especie || mascota.especie === especie;
+    const coincideTamano = !tamano || mascota.tamano === tamano;
+    const coincideEdad =
+      edadMaxima === "" || Number(mascota.edad) <= Number(edadMaxima);
+
+    return coincideEspecie && coincideTamano && coincideEdad;
+  });
+
+  mostrarMascotas(resultados);
+
+  if (mascotasDisponibles.length === 0) {
+    mensajeCatalogo.textContent = "Por ahora no hay mascotas disponibles.";
+  } else {
+    mensajeCatalogo.textContent = resultados.length
+      ? ""
+      : "No hay mascotas disponibles con esos filtros.";
+  }
+};
 
 const cargarCatalogo = async () => {
   mensajeCatalogo.textContent = "Cargando mascotas...";
@@ -14,35 +68,18 @@ const cargarCatalogo = async () => {
     }
 
     const mascotas = await respuesta.json();
-    const disponibles = mascotas.filter(
-      (mascota) => mascota.disponible === true
-    );
+    mascotasDisponibles = mascotas.filter((mascota) => mascota.disponible === true);
 
-    listaMascotas.replaceChildren();
+    aplicarFiltros();
 
-    for (const mascota of disponibles) {
-      const tarjeta = plantillaMascota.content.cloneNode(true);
-      const foto = tarjeta.querySelector(".mascota-foto");
+    formularioFiltros.addEventListener("submit", (evento) => {
+      evento.preventDefault();
+      aplicarFiltros();
+    });
 
-      foto.src = mascota.foto;
-      foto.alt = `Foto de ${mascota.nombre}`;
-
-      tarjeta.querySelector(".mascota-nombre").textContent = mascota.nombre;
-      tarjeta.querySelector(".mascota-especie").textContent = mascota.especie;
-      tarjeta.querySelector(".mascota-edad").textContent = `Edad: ${mascota.edad} años`;
-      tarjeta.querySelector(".mascota-tamano").textContent =
-        `Tamaño: ${mascota.tamano === "pequeno" ? "pequeño" : mascota.tamano}`;
-      tarjeta.querySelector(".mascota-vacuna").textContent = mascota.vacuna
-        ? "Vacunada"
-        : "Sin vacuna registrada";
-
-      tarjeta.querySelector(".boton-postular").dataset.petId = mascota.id;
-      listaMascotas.appendChild(tarjeta);
-    }
-
-    mensajeCatalogo.textContent = disponibles.length
-      ? ""
-      : "Por ahora no hay mascotas disponibles.";
+    formularioFiltros.addEventListener("reset", () => {
+      setTimeout(aplicarFiltros, 0);
+    });
   } catch (error) {
     console.error(error);
     mensajeCatalogo.textContent = "No se pudieron cargar las mascotas.";
