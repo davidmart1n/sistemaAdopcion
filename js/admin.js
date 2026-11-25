@@ -319,7 +319,34 @@ if (sesion?.role !== "ADMIN") {
 
             solicitud.estado = estado;
             dibujarDashboard();
-            alert("Estado actualizado.");
+
+            if (estado === "Aprobada") {
+              const urlMascota = `${urlMascotas}/${encodeURIComponent(solicitud.petId)}`;
+
+              try {
+                const respuestaMascota = await fetch(urlMascota, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ disponible: false })
+                });
+
+                if (!respuestaMascota.ok) {
+                  throw new Error(`Error al actualizar la mascota: ${respuestaMascota.status}`);
+                }
+              } catch (error) {
+                console.error(error);
+                alert(
+                  "La solicitud quedó aprobada, pero no se pudo actualizar la mascota. " +
+                  "Pulsá Guardar otra vez para reintentar."
+                );
+                return;
+              }
+
+              await cargarMascotas();
+              alert("Solicitud aprobada. La mascota quedó como No disponible.");
+            } else {
+              alert("Estado actualizado.");
+            }
           } catch (error) {
             console.error(error);
             alert("No se pudo guardar el estado.");

@@ -189,3 +189,9 @@ formularioPostulacion.addEventListener("submit", async (evento) => {
     botonCancelar.disabled = false;
   }
 });
+
+const sesionCatalogo = JSON.parse(sessionStorage.getItem("sesion"));
+
+document.getElementById("enlace-login").hidden = Boolean(sesionCatalogo);
+document.getElementById("enlace-registro").hidden = Boolean(sesionCatalogo);
+document.getElementById("enlace-admin").hidden = sesionCatalogo?.role !== "ADMIN";
