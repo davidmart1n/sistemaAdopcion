@@ -184,218 +184,271 @@ if (sesion?.role !== "ADMIN") {
   cargarMascotas();
 
   const urlUsuarios = "https://6b06ea8157fa1297bb566cd8.mockapi.io/users";
-const listaSolicitudes = document.getElementById("lista-solicitudes");
-const estadosSolicitud = ["En revisión", "Aprobada", "Rechazada"];
+  const listaSolicitudes = document.getElementById("lista-solicitudes");
+  const estadosSolicitud = ["En revisión", "Aprobada", "Rechazada"];
 
-const leerDatos = async (url) => {
-  const respuesta = await fetch(url);
+  const leerDatos = async (url) => {
+    const respuesta = await fetch(url);
 
-  if (!respuesta.ok) {
-    throw new Error(`Error al consultar los datos: ${respuesta.status}`);
-  }
-
-  return respuesta.json();
-};
-
-const cargarSolicitudes = async () => {
-  try {
-    const [solicitudes, usuarios, mascotas] = await Promise.all([
-      leerDatos(urlSolicitudes),
-      leerDatos(urlUsuarios),
-      leerDatos(urlMascotas)
-    ]);
-
-    listaSolicitudes.replaceChildren();
-
-    if (solicitudes.length === 0) {
-      const celda = listaSolicitudes.insertRow().insertCell();
-      celda.colSpan = 6;
-      celda.textContent = "Todavía no hay solicitudes.";
-      return;
+    if (!respuesta.ok) {
+      throw new Error(`Error al consultar los datos: ${respuesta.status}`);
     }
 
-    for (const solicitud of solicitudes) {
-      const usuario = usuarios.find(
-        (cuenta) => String(cuenta.id) === String(solicitud.userId)
-      );
-      const mascota = mascotas.find(
-        (ficha) => String(ficha.id) === String(solicitud.petId)
-      );
+    return respuesta.json();
+  };
 
-      const fila = listaSolicitudes.insertRow();
-      fila.insertCell().textContent = usuario?.nombre ?? "Usuario no encontrado";
-      fila.insertCell().textContent = usuario?.email ?? "—";
-      fila.insertCell().textContent = mascota?.nombre ?? "Mascota no encontrada";
-      fila.insertCell().textContent = solicitud.fechaSolicitud?.slice(0, 10) ?? "—";
+  const graficoSolicitudes = document.getElementById("grafico-solicitudes");
+  const filtroDashboard = document.getElementById("filtro-dashboard");
+  const resumenDashboard = document.getElementById("resumen-dashboard");
+  const contextoGrafico = graficoSolicitudes.getContext("2d");
 
-      const selector = document.createElement("select");
-      selector.setAttribute("aria-label", `Estado de la solicitud ${solicitud.id}`);
+  const coloresEstado = {
+    "En revisión": "#b45309",
+    "Aprobada": "#15803d",
+    "Rechazada": "#b91c1c"
+  };
 
-      for (const estado of estadosSolicitud) {
-        selector.add(new Option(estado, estado));
+  let solicitudesDashboard = [];
+
+  const dibujarDashboard = () => {
+    const filtro = filtroDashboard.value;
+    const estados = filtro ? [filtro] : estadosSolicitud;
+
+    const totales = estados.map((estado) => ({
+      estado,
+      cantidad: solicitudesDashboard.filter(
+        (solicitud) => solicitud.estado === estado
+      ).length
+    }));
+
+    graficoSolicitudes.width = 320;
+    graficoSolicitudes.height = totales.length * 56 + 12;
+
+    const maximo = Math.max(1, ...totales.map((total) => total.cantidad));
+
+    contextoGrafico.font = "14px sans-serif";
+
+    totales.forEach(({ estado, cantidad }, indice) => {
+      const y = 24 + indice * 56;
+
+      contextoGrafico.fillStyle = "#1f2937";
+      contextoGrafico.fillText(`${estado}: ${cantidad}`, 12, y);
+
+      contextoGrafico.fillStyle = coloresEstado[estado];
+      contextoGrafico.fillRect(12, y + 8, (cantidad / maximo) * 296, 16);
+    });
+
+    resumenDashboard.textContent = totales
+      .map(({ estado, cantidad }) => `${estado}: ${cantidad}`)
+      .join(" · ");
+  };
+
+  filtroDashboard.addEventListener("change", dibujarDashboard);
+
+  const cargarSolicitudes = async () => {
+    try {
+      const [solicitudes, usuarios, mascotas] = await Promise.all([
+        leerDatos(urlSolicitudes),
+        leerDatos(urlUsuarios),
+        leerDatos(urlMascotas)
+      ]);
+
+      solicitudesDashboard = solicitudes;
+      dibujarDashboard();
+
+      listaSolicitudes.replaceChildren();
+
+      if (solicitudes.length === 0) {
+        const celda = listaSolicitudes.insertRow().insertCell();
+        celda.colSpan = 6;
+        celda.textContent = "Todavía no hay solicitudes.";
+        return;
       }
 
-      selector.value = solicitud.estado;
-      fila.insertCell().appendChild(selector);
+      for (const solicitud of solicitudes) {
+        const usuario = usuarios.find(
+          (cuenta) => String(cuenta.id) === String(solicitud.userId)
+        );
+        const mascota = mascotas.find(
+          (ficha) => String(ficha.id) === String(solicitud.petId)
+        );
 
-      const boton = document.createElement("button");
-      boton.type = "button";
-      boton.textContent = "Guardar";
-      fila.insertCell().appendChild(boton);
+        const fila = listaSolicitudes.insertRow();
+        fila.insertCell().textContent = usuario?.nombre ?? "Usuario no encontrado";
+        fila.insertCell().textContent = usuario?.email ?? "—";
+        fila.insertCell().textContent = mascota?.nombre ?? "Mascota no encontrada";
+        fila.insertCell().textContent = solicitud.fechaSolicitud?.slice(0, 10) ?? "—";
 
-      boton.addEventListener("click", async () => {
-        const estado = selector.value;
+        const selector = document.createElement("select");
+        selector.setAttribute("aria-label", `Estado de la solicitud ${solicitud.id}`);
 
-        if (!estado) {
-          alert("Elegí un estado.");
-          return;
+        for (const estado of estadosSolicitud) {
+          selector.add(new Option(estado, estado));
         }
 
-        boton.disabled = true;
-        selector.disabled = true;
+        selector.value = solicitud.estado;
+        fila.insertCell().appendChild(selector);
 
-        try {
-          const url = `${urlSolicitudes}/${encodeURIComponent(solicitud.id)}`;
-          const respuesta = await fetch(url, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ estado })
-          });
+        const boton = document.createElement("button");
+        boton.type = "button";
+        boton.textContent = "Guardar";
+        fila.insertCell().appendChild(boton);
 
-          if (!respuesta.ok) {
-            throw new Error(`Error al guardar el estado: ${respuesta.status}`);
+        boton.addEventListener("click", async () => {
+          const estado = selector.value;
+
+          if (!estado) {
+            alert("Elegí un estado.");
+            return;
           }
 
-          alert("Estado actualizado.");
-        } catch (error) {
-          console.error(error);
-          alert("No se pudo guardar el estado.");
-        } finally {
-          boton.disabled = false;
-          selector.disabled = false;
-        }
-      });
+          boton.disabled = true;
+          selector.disabled = true;
+
+          try {
+            const url = `${urlSolicitudes}/${encodeURIComponent(solicitud.id)}`;
+            const respuesta = await fetch(url, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ estado })
+            });
+
+            if (!respuesta.ok) {
+              throw new Error(`Error al guardar el estado: ${respuesta.status}`);
+            }
+
+            solicitud.estado = estado;
+            dibujarDashboard();
+            alert("Estado actualizado.");
+          } catch (error) {
+            console.error(error);
+            alert("No se pudo guardar el estado.");
+          } finally {
+            boton.disabled = false;
+            selector.disabled = false;
+          }
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      listaSolicitudes.replaceChildren();
+
+      const celda = listaSolicitudes.insertRow().insertCell();
+      celda.colSpan = 6;
+      celda.textContent = "No se pudieron cargar las solicitudes.";
     }
-  } catch (error) {
-    console.error(error);
-    listaSolicitudes.replaceChildren();
+  };
 
-    const celda = listaSolicitudes.insertRow().insertCell();
-    celda.colSpan = 6;
-    celda.textContent = "No se pudieron cargar las solicitudes.";
-  }
-};
+  cargarSolicitudes();
 
-cargarSolicitudes();
+  const formularioUsuario = document.getElementById("form-usuario");
+  const formularioPassword = document.getElementById("form-cambiar-password");
+  const selectorUsuario = document.getElementById("usuario-seleccionado");
 
-const formularioUsuario = document.getElementById("form-usuario");
-const formularioPassword = document.getElementById("form-cambiar-password");
-const selectorUsuario = document.getElementById("usuario-seleccionado");
+  const cargarSelectorUsuarios = async () => {
+    selectorUsuario.disabled = true;
+    selectorUsuario.replaceChildren(new Option("Elegí un usuario", ""));
 
-const cargarSelectorUsuarios = async () => {
-  selectorUsuario.disabled = true;
-  selectorUsuario.replaceChildren(new Option("Elegí un usuario", ""));
+    try {
+      const usuarios = await leerDatos(urlUsuarios);
 
-  try {
-    const usuarios = await leerDatos(urlUsuarios);
-
-    for (const usuario of usuarios) {
-      const etiqueta = `${usuario.nombre} (${usuario.email})`;
-      selectorUsuario.add(new Option(etiqueta, usuario.id));
+      for (const usuario of usuarios) {
+        const etiqueta = `${usuario.nombre} (${usuario.email})`;
+        selectorUsuario.add(new Option(etiqueta, usuario.id));
+      }
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo cargar la lista de usuarios.");
+    } finally {
+      selectorUsuario.disabled = false;
     }
-  } catch (error) {
-    console.error(error);
-    alert("No se pudo cargar la lista de usuarios.");
-  } finally {
-    selectorUsuario.disabled = false;
-  }
-};
+  };
 
-formularioUsuario.addEventListener("submit", async (evento) => {
-  evento.preventDefault();
+  formularioUsuario.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
 
-  const datos = new FormData(formularioUsuario);
-  const nombre = datos.get("nombre").trim();
-  const email = datos.get("email").trim().toLowerCase();
-  const password = datos.get("password");
-  const role = datos.get("role");
+    const datos = new FormData(formularioUsuario);
+    const nombre = datos.get("nombre").trim();
+    const email = datos.get("email").trim().toLowerCase();
+    const password = datos.get("password");
+    const role = datos.get("role");
 
-  if (!nombre || !password.trim()) {
-    alert("Completá el nombre y la contraseña.");
-    return;
-  }
-
-  const boton = formularioUsuario.querySelector('button[type="submit"]');
-  boton.disabled = true;
-
-  try {
-    const usuarios = await leerDatos(urlUsuarios);
-    const correoOcupado = usuarios.some(
-      (usuario) => usuario.email?.trim().toLowerCase() === email
-    );
-
-    if (correoOcupado) {
-      alert("Ese correo ya está registrado.");
+    if (!nombre || !password.trim()) {
+      alert("Completá el nombre y la contraseña.");
       return;
     }
 
-    const respuesta = await fetch(urlUsuarios, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre, email, password, role })
-    });
+    const boton = formularioUsuario.querySelector('button[type="submit"]');
+    boton.disabled = true;
 
-    if (!respuesta.ok) {
-      throw new Error(`Error al crear el usuario: ${respuesta.status}`);
+    try {
+      const usuarios = await leerDatos(urlUsuarios);
+      const correoOcupado = usuarios.some(
+        (usuario) => usuario.email?.trim().toLowerCase() === email
+      );
+
+      if (correoOcupado) {
+        alert("Ese correo ya está registrado.");
+        return;
+      }
+
+      const respuesta = await fetch(urlUsuarios, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, email, password, role })
+      });
+
+      if (!respuesta.ok) {
+        throw new Error(`Error al crear el usuario: ${respuesta.status}`);
+      }
+
+      formularioUsuario.reset();
+      alert("Usuario creado.");
+      await cargarSelectorUsuarios();
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo crear el usuario.");
+    } finally {
+      boton.disabled = false;
+    }
+  });
+
+  formularioPassword.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+
+    const datos = new FormData(formularioPassword);
+    const id = datos.get("userId");
+    const password = datos.get("password");
+
+    if (!id || !password.trim()) {
+      alert("Elegí un usuario y escribí la nueva contraseña.");
+      return;
     }
 
-    formularioUsuario.reset();
-    alert("Usuario creado.");
-    await cargarSelectorUsuarios();
-  } catch (error) {
-    console.error(error);
-    alert("No se pudo crear el usuario.");
-  } finally {
-    boton.disabled = false;
-  }
-});
+    const boton = formularioPassword.querySelector('button[type="submit"]');
+    boton.disabled = true;
 
-formularioPassword.addEventListener("submit", async (evento) => {
-  evento.preventDefault();
+    try {
+      const url = `${urlUsuarios}/${encodeURIComponent(id)}`;
+      const respuesta = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
 
-  const datos = new FormData(formularioPassword);
-  const id = datos.get("userId");
-  const password = datos.get("password");
+      if (!respuesta.ok) {
+        throw new Error(`Error al cambiar la contraseña: ${respuesta.status}`);
+      }
 
-  if (!id || !password.trim()) {
-    alert("Elegí un usuario y escribí la nueva contraseña.");
-    return;
-  }
-
-  const boton = formularioPassword.querySelector('button[type="submit"]');
-  boton.disabled = true;
-
-  try {
-    const url = `${urlUsuarios}/${encodeURIComponent(id)}`;
-    const respuesta = await fetch(url, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password })
-    });
-
-    if (!respuesta.ok) {
-      throw new Error(`Error al cambiar la contraseña: ${respuesta.status}`);
+      formularioPassword.reset();
+      alert("Contraseña actualizada.");
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo cambiar la contraseña.");
+    } finally {
+      boton.disabled = false;
     }
+  });
 
-    formularioPassword.reset();
-    alert("Contraseña actualizada.");
-  } catch (error) {
-    console.error(error);
-    alert("No se pudo cambiar la contraseña.");
-  } finally {
-    boton.disabled = false;
-  }
-});
-
-cargarSelectorUsuarios();
+  cargarSelectorUsuarios();
 }

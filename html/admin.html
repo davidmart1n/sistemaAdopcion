@@ -1,176 +1,185 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administración | Refugio de mascotas</title>
-  <script src="../js/admin.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración | Refugio de mascotas</title>
+    <script src="../js/admin.js" defer></script>
 </head>
+
 <body>
-  <header>
-    <h1>Panel de administración</h1>
+    <header>
+        <h1>Panel de administración</h1>
 
-    <nav aria-label="Menú de administración">
-      <a href="#mascotas">Mascotas</a>
-      <a href="#solicitudes">Solicitudes</a>
-      <a href="#usuarios">Usuarios</a>
-      <a href="#dashboard">Dashboard</a>
-    </nav>
+        <nav aria-label="Menú de administración">
+            <a href="#mascotas">Mascotas</a>
+            <a href="#solicitudes">Solicitudes</a>
+            <a href="#usuarios">Usuarios</a>
+            <a href="#dashboard">Dashboard</a>
+        </nav>
 
-    <button type="button" id="cerrar-sesion">Cerrar sesión</button>
-  </header>
+        <button type="button" id="cerrar-sesion">Cerrar sesión</button>
+    </header>
 
-  <main>
-    <p id="mensaje-admin" role="status"></p>
+    <main>
+        <p id="mensaje-admin" role="status"></p>
 
-    <section id="mascotas">
-      <h2>Gestión de mascotas</h2>
+        <section id="mascotas">
+            <h2>Gestión de mascotas</h2>
 
-      <form id="form-mascota" method="post">
-        <input type="hidden" id="mascota-id" name="id">
+            <form id="form-mascota" method="post">
+                <input type="hidden" id="mascota-id" name="id">
 
-        <div>
-          <label for="mascota-nombre">Nombre</label>
-          <input type="text" id="mascota-nombre" name="nombre" required>
-        </div>
+                <div>
+                    <label for="mascota-nombre">Nombre</label>
+                    <input type="text" id="mascota-nombre" name="nombre" required>
+                </div>
 
-        <div>
-          <label for="mascota-especie">Especie</label>
-          <select id="mascota-especie" name="especie" required>
-            <option value="">Elegí una especie</option>
-            <option value="perro">Perro</option>
-            <option value="gato">Gato</option>
-          </select>
-        </div>
+                <div>
+                    <label for="mascota-especie">Especie</label>
+                    <select id="mascota-especie" name="especie" required>
+                        <option value="">Elegí una especie</option>
+                        <option value="perro">Perro</option>
+                        <option value="gato">Gato</option>
+                    </select>
+                </div>
 
-        <div>
-          <label for="mascota-edad">Edad en años</label>
-          <input type="number" id="mascota-edad" name="edad" min="0" step="any" required>
-        </div>
+                <div>
+                    <label for="mascota-edad">Edad en años</label>
+                    <input type="number" id="mascota-edad" name="edad" min="0" step="any" required>
+                </div>
 
-        <div>
-          <label for="mascota-tamano">Tamaño</label>
-          <select id="mascota-tamano" name="tamano" required>
-            <option value="">Elegí un tamaño</option>
-            <option value="pequeno">Pequeño</option>
-            <option value="mediano">Mediano</option>
-            <option value="grande">Grande</option>
-          </select>
-        </div>
+                <div>
+                    <label for="mascota-tamano">Tamaño</label>
+                    <select id="mascota-tamano" name="tamano" required>
+                        <option value="">Elegí un tamaño</option>
+                        <option value="pequeno">Pequeño</option>
+                        <option value="mediano">Mediano</option>
+                        <option value="grande">Grande</option>
+                    </select>
+                </div>
 
-        <div>
-          <label for="mascota-foto">URL de la foto</label>
-          <input type="url" id="mascota-foto" name="foto" required>
-        </div>
+                <div>
+                    <label for="mascota-foto">URL de la foto</label>
+                    <input type="url" id="mascota-foto" name="foto" required>
+                </div>
 
-        <div>
-          <label>
-            <input type="checkbox" name="vacuna">
-            Vacunada
-          </label>
+                <div>
+                    <label>
+                        <input type="checkbox" name="vacuna">
+                        Vacunada
+                    </label>
 
-          <label>
-            <input type="checkbox" name="disponible" checked>
-            Disponible para adopción
-          </label>
-        </div>
+                    <label>
+                        <input type="checkbox" name="disponible" checked>
+                        Disponible para adopción
+                    </label>
+                </div>
 
-        <button type="submit">Guardar mascota</button>
-        <button type="reset">Limpiar formulario</button>
-      </form>
+                <button type="submit">Guardar mascota</button>
+                <button type="reset">Limpiar formulario</button>
+            </form>
 
-      <table>
-        <caption>Mascotas del refugio</caption>
-        <thead>
-          <tr>
-            <th scope="col">Nombre</th>
-            <th scope="col">Especie</th>
-            <th scope="col">Edad</th>
-            <th scope="col">Tamaño</th>
-            <th scope="col">Disponibilidad</th>
-            <th scope="col">Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="lista-mascotas"></tbody>
-      </table>
-    </section>
+            <table>
+                <caption>Mascotas del refugio</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Especie</th>
+                        <th scope="col">Edad</th>
+                        <th scope="col">Tamaño</th>
+                        <th scope="col">Disponibilidad</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-mascotas"></tbody>
+            </table>
+        </section>
 
-    <section id="solicitudes">
-      <h2>Solicitudes de adopción</h2>
+        <section id="solicitudes">
+            <h2>Solicitudes de adopción</h2>
 
-      <table>
-        <caption>Postulaciones recibidas</caption>
-        <thead>
-          <tr>
-            <th scope="col">Solicitante</th>
-            <th scope="col">Correo</th>
-            <th scope="col">Mascota</th>
-            <th scope="col">Fecha</th>
-            <th scope="col">Estado</th>
-            <th scope="col">Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="lista-solicitudes"></tbody>
-      </table>
-    </section>
+            <table>
+                <caption>Postulaciones recibidas</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Solicitante</th>
+                        <th scope="col">Correo</th>
+                        <th scope="col">Mascota</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-solicitudes"></tbody>
+            </table>
+        </section>
 
-    <section id="usuarios">
-      <h2>Gestión de usuarios</h2>
+        <section id="usuarios">
+            <h2>Gestión de usuarios</h2>
 
-      <h3>Crear usuario</h3>
-      <form id="form-usuario" method="post">
-        <div>
-          <label for="usuario-nombre">Nombre completo</label>
-          <input type="text" id="usuario-nombre" name="nombre" required>
-        </div>
+            <h3>Crear usuario</h3>
+            <form id="form-usuario" method="post">
+                <div>
+                    <label for="usuario-nombre">Nombre completo</label>
+                    <input type="text" id="usuario-nombre" name="nombre" required>
+                </div>
 
-        <div>
-          <label for="usuario-email">Correo electrónico</label>
-          <input type="email" id="usuario-email" name="email" required>
-        </div>
+                <div>
+                    <label for="usuario-email">Correo electrónico</label>
+                    <input type="email" id="usuario-email" name="email" required>
+                </div>
 
-        <div>
-          <label for="usuario-password">Contraseña</label>
-          <input type="password" id="usuario-password" name="password"
-                 autocomplete="new-password" required>
-        </div>
+                <div>
+                    <label for="usuario-password">Contraseña</label>
+                    <input type="password" id="usuario-password" name="password" autocomplete="new-password" required>
+                </div>
 
-        <div>
-          <label for="usuario-role">Rol</label>
-          <select id="usuario-role" name="role">
-            <option value="USUARIO">Usuario</option>
-            <option value="ADMIN">Administrador</option>
-          </select>
-        </div>
+                <div>
+                    <label for="usuario-role">Rol</label>
+                    <select id="usuario-role" name="role">
+                        <option value="USUARIO">Usuario</option>
+                        <option value="ADMIN">Administrador</option>
+                    </select>
+                </div>
 
-        <button type="submit">Crear usuario</button>
-      </form>
+                <button type="submit">Crear usuario</button>
+            </form>
 
-      <h3>Cambiar contraseña</h3>
-      <form id="form-cambiar-password" method="post">
-        <div>
-          <label for="usuario-seleccionado">Usuario</label>
-          <select id="usuario-seleccionado" name="userId" required>
-            <option value="">Elegí un usuario</option>
-          </select>
-        </div>
+            <h3>Cambiar contraseña</h3>
+            <form id="form-cambiar-password" method="post">
+                <div>
+                    <label for="usuario-seleccionado">Usuario</label>
+                    <select id="usuario-seleccionado" name="userId" required>
+                        <option value="">Elegí un usuario</option>
+                    </select>
+                </div>
 
-        <div>
-          <label for="nueva-password">Nueva contraseña</label>
-          <input type="password" id="nueva-password" name="password"
-                 autocomplete="new-password" required>
-        </div>
+                <div>
+                    <label for="nueva-password">Nueva contraseña</label>
+                    <input type="password" id="nueva-password" name="password" autocomplete="new-password" required>
+                </div>
 
-        <button type="submit">Cambiar contraseña</button>
-      </form>
-    </section>
+                <button type="submit">Cambiar contraseña</button>
+            </form>
+        </section>
 
-    <section id="dashboard">
-      <h2>Dashboard</h2>
-      <h3>Solicitudes por estado</h3>
-      <canvas id="grafico-solicitudes" aria-label="Gráfico de solicitudes por estado"
-              role="img"></canvas>
-    </section>
-  </main>
+        <section id="dashboard">
+            <h2>Dashboard</h2>
+            <h3>Solicitudes por estado</h3>
+            <label for="filtro-dashboard">Estado de las solicitudes</label>
+            <select id="filtro-dashboard">
+                <option value="">Todos los estados</option>
+                <option value="En revisión">En revisión</option>
+                <option value="Aprobada">Aprobada</option>
+                <option value="Rechazada">Rechazada</option>
+            </select>
+
+            <p id="resumen-dashboard" role="status"></p>
+            <canvas id="grafico-solicitudes" aria-label="Gráfico de solicitudes por estado" role="img"></canvas>
+        </section>
+    </main>
 </body>
+
 </html>
