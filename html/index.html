@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mascotas en adopción | Refugio de mascotas</title>
+</head>
+<body>
+  <header>
+    <p>Refugio de mascotas</p>
+
+    <nav aria-label="Menú principal">
+      <a href="index.html" aria-current="page">Catálogo</a>
+      <a href="login.html" id="enlace-login">Iniciar sesión</a>
+      <a href="registro.html" id="enlace-registro">Registrarse</a>
+      <a href="admin.html" id="enlace-admin" hidden>Administración</a>
+      <button type="button" id="cerrar-sesion" hidden>Cerrar sesión</button>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Mascotas en adopción</h1>
+
+    <form id="form-filtros">
+      <div>
+        <label for="filtro-especie">Especie</label>
+        <select id="filtro-especie" name="especie">
+          <option value="">Todas</option>
+          <option value="perro">Perro</option>
+          <option value="gato">Gato</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="filtro-tamano">Tamaño</label>
+        <select id="filtro-tamano" name="tamano">
+          <option value="">Todos</option>
+          <option value="pequeno">Pequeño</option>
+          <option value="mediano">Mediano</option>
+          <option value="grande">Grande</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="filtro-edad">Edad máxima en años</label>
+        <input type="number" id="filtro-edad" name="edad" min="0" step="any">
+      </div>
+
+      <button type="submit">Filtrar</button>
+      <button type="reset">Limpiar filtros</button>
+    </form>
+
+    <p id="mensaje-catalogo" role="status"></p>
+
+    <div id="lista-mascotas"></div>
+
+    <template id="plantilla-mascota">
+      <article class="tarjeta-mascota">
+        <img class="mascota-foto" alt="" loading="lazy">
+        <h2 class="mascota-nombre"></h2>
+        <p class="mascota-especie"></p>
+        <p class="mascota-edad"></p>
+        <p class="mascota-tamano"></p>
+        <p class="mascota-vacuna"></p>
+        <button type="button" class="boton-postular">Postularme</button>
+      </article>
+    </template>
+  </main>
+</body>
+</html>
