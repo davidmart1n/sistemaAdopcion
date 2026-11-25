@@ -182,4 +182,109 @@ if (sesion?.role !== "ADMIN") {
   });
 
   cargarMascotas();
+
+  const urlUsuarios = "https://6b06ea8157fa1297bb566cd8.mockapi.io/users";
+const listaSolicitudes = document.getElementById("lista-solicitudes");
+const estadosSolicitud = ["En revisión", "Aprobada", "Rechazada"];
+
+const leerDatos = async (url) => {
+  const respuesta = await fetch(url);
+
+  if (!respuesta.ok) {
+    throw new Error(`Error al consultar los datos: ${respuesta.status}`);
+  }
+
+  return respuesta.json();
+};
+
+const cargarSolicitudes = async () => {
+  try {
+    const [solicitudes, usuarios, mascotas] = await Promise.all([
+      leerDatos(urlSolicitudes),
+      leerDatos(urlUsuarios),
+      leerDatos(urlMascotas)
+    ]);
+
+    listaSolicitudes.replaceChildren();
+
+    if (solicitudes.length === 0) {
+      const celda = listaSolicitudes.insertRow().insertCell();
+      celda.colSpan = 6;
+      celda.textContent = "Todavía no hay solicitudes.";
+      return;
+    }
+
+    for (const solicitud of solicitudes) {
+      const usuario = usuarios.find(
+        (cuenta) => String(cuenta.id) === String(solicitud.userId)
+      );
+      const mascota = mascotas.find(
+        (ficha) => String(ficha.id) === String(solicitud.petId)
+      );
+
+      const fila = listaSolicitudes.insertRow();
+      fila.insertCell().textContent = usuario?.nombre ?? "Usuario no encontrado";
+      fila.insertCell().textContent = usuario?.email ?? "—";
+      fila.insertCell().textContent = mascota?.nombre ?? "Mascota no encontrada";
+      fila.insertCell().textContent = solicitud.fechaSolicitud?.slice(0, 10) ?? "—";
+
+      const selector = document.createElement("select");
+      selector.setAttribute("aria-label", `Estado de la solicitud ${solicitud.id}`);
+
+      for (const estado of estadosSolicitud) {
+        selector.add(new Option(estado, estado));
+      }
+
+      selector.value = solicitud.estado;
+      fila.insertCell().appendChild(selector);
+
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.textContent = "Guardar";
+      fila.insertCell().appendChild(boton);
+
+      boton.addEventListener("click", async () => {
+        const estado = selector.value;
+
+        if (!estado) {
+          alert("Elegí un estado.");
+          return;
+        }
+
+        boton.disabled = true;
+        selector.disabled = true;
+
+        try {
+          const url = `${urlSolicitudes}/${encodeURIComponent(solicitud.id)}`;
+          const respuesta = await fetch(url, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ estado })
+          });
+
+          if (!respuesta.ok) {
+            throw new Error(`Error al guardar el estado: ${respuesta.status}`);
+          }
+
+          alert("Estado actualizado.");
+        } catch (error) {
+          console.error(error);
+          alert("No se pudo guardar el estado.");
+        } finally {
+          boton.disabled = false;
+          selector.disabled = false;
+        }
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    listaSolicitudes.replaceChildren();
+
+    const celda = listaSolicitudes.insertRow().insertCell();
+    celda.colSpan = 6;
+    celda.textContent = "No se pudieron cargar las solicitudes.";
+  }
+};
+
+cargarSolicitudes();
 }
