@@ -50,5 +50,51 @@ if (sesion?.role !== "ADMIN") {
     }
   };
 
+const formularioMascota = document.getElementById("form-mascota");
+const botonGuardar = formularioMascota.querySelector('button[type="submit"]');
+
+formularioMascota.addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+
+  const datos = new FormData(formularioMascota);
+  const mascota = {
+    nombre: datos.get("nombre").trim(),
+    especie: datos.get("especie"),
+    edad: Number(datos.get("edad")),
+    tamano: datos.get("tamano"),
+    foto: datos.get("foto").trim(),
+    vacuna: datos.has("vacuna"),
+    disponible: datos.has("disponible")
+  };
+
+  if (!mascota.nombre) {
+    mensajeAdmin.textContent = "Escribí el nombre de la mascota.";
+    return;
+  }
+
+  botonGuardar.disabled = true;
+  mensajeAdmin.textContent = "Guardando mascota...";
+
+  try {
+    const respuesta = await fetch(urlMascotas, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(mascota)
+    });
+
+    if (!respuesta.ok) {
+      throw new Error(`MockAPI respondió con el código ${respuesta.status}`);
+    }
+
+    formularioMascota.reset();
+    await cargarMascotas();
+  } catch (error) {
+    console.error(error);
+    mensajeAdmin.textContent = "No se pudo guardar la mascota.";
+  } finally {
+    botonGuardar.disabled = false;
+  }
+});
+
   cargarMascotas();
 }
