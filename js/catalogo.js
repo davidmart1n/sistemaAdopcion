@@ -87,3 +87,105 @@ const cargarCatalogo = async () => {
 };
 
 cargarCatalogo();
+
+const urlSolicitudes = "https://6b06ea8157fa1297bb566cd8.mockapi.io/adoptions";
+
+const dialogoPostulacion = document.getElementById("dialogo-postulacion");
+const formularioPostulacion = document.getElementById("form-postulacion");
+const nombrePostulacion = document.getElementById("nombre-postulacion");
+const mensajePostulacion = document.getElementById("mensaje-postulacion");
+const botonConfirmar = document.getElementById("confirmar-postulacion");
+const botonCancelar = document.getElementById("cancelar-postulacion");
+
+let mascotaSeleccionada = null;
+
+listaMascotas.addEventListener("click", (evento) => {
+  const boton = evento.target.closest(".boton-postular");
+  if (!boton) return;
+
+  const sesion = JSON.parse(sessionStorage.getItem("sesion"));
+
+  if (!sesion) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  if (sesion.role !== "USUARIO") {
+    mensajeCatalogo.textContent = "Ingresá con una cuenta de adoptante para postularte.";
+    return;
+  }
+
+  mascotaSeleccionada = mascotasDisponibles.find(
+    (mascota) => String(mascota.id) === boton.dataset.petId
+  );
+
+  if (!mascotaSeleccionada) return;
+
+  nombrePostulacion.textContent = mascotaSeleccionada.nombre;
+  mensajePostulacion.textContent = "";
+  dialogoPostulacion.showModal();
+});
+
+botonCancelar.addEventListener("click", () => {
+  dialogoPostulacion.close();
+});
+
+dialogoPostulacion.addEventListener("cancel", (evento) => {
+  if (botonConfirmar.disabled) evento.preventDefault();
+});
+
+formularioPostulacion.addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+
+  const sesion = JSON.parse(sessionStorage.getItem("sesion"));
+  if (sesion?.role !== "USUARIO" || !mascotaSeleccionada) return;
+
+  botonConfirmar.disabled = true;
+  botonCancelar.disabled = true;
+  mensajePostulacion.textContent = "Enviando solicitud...";
+
+  try {
+    const urlMascota = `${urlMascotas}/${encodeURIComponent(mascotaSeleccionada.id)}`;
+    const respuestaMascota = await fetch(urlMascota);
+
+    if (respuestaMascota.status === 404) {
+      mensajePostulacion.textContent = "Esta mascota ya no está disponible.";
+      return;
+    }
+
+    if (!respuestaMascota.ok) {
+      throw new Error(`Error al consultar la mascota: ${respuestaMascota.status}`);
+    }
+
+    const mascotaActual = await respuestaMascota.json();
+
+    if (mascotaActual.disponible !== true) {
+      mensajePostulacion.textContent = "Esta mascota ya no está disponible.";
+      return;
+    }
+
+    const respuesta = await fetch(urlSolicitudes, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: sesion.id,
+        petId: mascotaActual.id,
+        fechaSolicitud: new Date().toISOString(),
+        estado: "En revisión"
+      })
+    });
+
+    if (!respuesta.ok) {
+      throw new Error(`Error al enviar la solicitud: ${respuesta.status}`);
+    }
+
+    dialogoPostulacion.close();
+    mensajeCatalogo.textContent = "Tu solicitud quedó en revisión.";
+  } catch (error) {
+    console.error(error);
+    mensajePostulacion.textContent = "No se pudo enviar la solicitud. Volvé a intentar.";
+  } finally {
+    botonConfirmar.disabled = false;
+    botonCancelar.disabled = false;
+  }
+});

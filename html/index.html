@@ -1,71 +1,86 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="../js/catalogo.js" defer></script>
-  <title>Mascotas en adopción | Refugio de mascotas</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../js/catalogo.js" defer></script>
+    <title>Mascotas en adopción | Refugio de mascotas</title>
 </head>
+
 <body>
-  <header>
-    <p>Refugio de mascotas</p>
+    <header>
+        <p>Refugio de mascotas</p>
 
-    <nav aria-label="Menú principal">
-      <a href="index.html" aria-current="page">Catálogo</a>
-      <a href="login.html" id="enlace-login">Iniciar sesión</a>
-      <a href="register.html" id="enlace-registro">Registrarse</a>
-      <a href="admin.html" id="enlace-admin" hidden>Administración</a>
-      <button type="button" id="cerrar-sesion" hidden>Cerrar sesión</button>
-    </nav>
-  </header>
+        <nav aria-label="Menú principal">
+            <a href="index.html" aria-current="page">Catálogo</a>
+            <a href="login.html" id="enlace-login">Iniciar sesión</a>
+            <a href="register.html" id="enlace-registro">Registrarse</a>
+            <a href="admin.html" id="enlace-admin" hidden>Administración</a>
+            <button type="button" id="cerrar-sesion" hidden>Cerrar sesión</button>
+        </nav>
+    </header>
 
-  <main>
-    <h1>Mascotas en adopción</h1>
+    <main>
+        <h1>Mascotas en adopción</h1>
 
-    <form id="form-filtros">
-      <div>
-        <label for="filtro-especie">Especie</label>
-        <select id="filtro-especie" name="especie">
-          <option value="">Todas</option>
-          <option value="perro">Perro</option>
-          <option value="gato">Gato</option>
-        </select>
-      </div>
+        <form id="form-filtros">
+            <div>
+                <label for="filtro-especie">Especie</label>
+                <select id="filtro-especie" name="especie">
+                    <option value="">Todas</option>
+                    <option value="perro">Perro</option>
+                    <option value="gato">Gato</option>
+                </select>
+            </div>
 
-      <div>
-        <label for="filtro-tamano">Tamaño</label>
-        <select id="filtro-tamano" name="tamano">
-          <option value="">Todos</option>
-          <option value="pequeno">Pequeño</option>
-          <option value="mediano">Mediano</option>
-          <option value="grande">Grande</option>
-        </select>
-      </div>
+            <div>
+                <label for="filtro-tamano">Tamaño</label>
+                <select id="filtro-tamano" name="tamano">
+                    <option value="">Todos</option>
+                    <option value="pequeno">Pequeño</option>
+                    <option value="mediano">Mediano</option>
+                    <option value="grande">Grande</option>
+                </select>
+            </div>
 
-      <div>
-        <label for="filtro-edad">Edad máxima en años</label>
-        <input type="number" id="filtro-edad" name="edad" min="0" step="any">
-      </div>
+            <div>
+                <label for="filtro-edad">Edad máxima en años</label>
+                <input type="number" id="filtro-edad" name="edad" min="0" step="any">
+            </div>
 
-      <button type="submit">Filtrar</button>
-      <button type="reset">Limpiar filtros</button>
-    </form>
+            <button type="submit">Filtrar</button>
+            <button type="reset">Limpiar filtros</button>
+        </form>
 
-    <p id="mensaje-catalogo" role="status"></p>
+        <p id="mensaje-catalogo" role="status"></p>
 
-    <div id="lista-mascotas"></div>
+        <div id="lista-mascotas"></div>
 
-    <template id="plantilla-mascota">
-      <article class="tarjeta-mascota">
-        <img class="mascota-foto" alt="" loading="lazy">
-        <h2 class="mascota-nombre"></h2>
-        <p class="mascota-especie"></p>
-        <p class="mascota-edad"></p>
-        <p class="mascota-tamano"></p>
-        <p class="mascota-vacuna"></p>
-        <button type="button" class="boton-postular">Postularme</button>
-      </article>
-    </template>
-  </main>
+        <template id="plantilla-mascota">
+            <article class="tarjeta-mascota">
+                <img class="mascota-foto" alt="" loading="lazy">
+                <h2 class="mascota-nombre"></h2>
+                <p class="mascota-especie"></p>
+                <p class="mascota-edad"></p>
+                <p class="mascota-tamano"></p>
+                <p class="mascota-vacuna"></p>
+                <button type="button" class="boton-postular">Postularme</button>
+            </article>
+        </template>
+
+        <dialog id="dialogo-postulacion" aria-labelledby="titulo-postulacion">
+            <h2 id="titulo-postulacion">Confirmar postulación</h2>
+            <p>Vas a solicitar la adopción de <strong id="nombre-postulacion"></strong>.</p>
+
+            <form id="form-postulacion">
+                <button type="submit" id="confirmar-postulacion">Enviar solicitud</button>
+                <button type="button" id="cancelar-postulacion">Cancelar</button>
+            </form>
+
+            <p id="mensaje-postulacion" role="status"></p>
+        </dialog>
+    </main>
 </body>
+
 </html>
