@@ -307,6 +307,21 @@ if (sesion?.role !== "ADMIN") {
 
           try {
             const url = `${urlSolicitudes}/${encodeURIComponent(solicitud.id)}`;
+            if (estado === "Rechazada") {
+              if (!window.confirm("¿Rechazar y eliminar definitivamente esta solicitud?")) {
+                selector.value = solicitud.estado;
+                return;
+              }
+
+              const respuestaBaja = await fetch(url, { method: "DELETE" });
+
+              if (!respuestaBaja.ok) {
+                throw new Error(`Error al eliminar la solicitud: ${respuestaBaja.status}`);
+              }
+
+              await cargarSolicitudes();
+              return;
+            }
             const respuesta = await fetch(url, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
