@@ -287,4 +287,115 @@ const cargarSolicitudes = async () => {
 };
 
 cargarSolicitudes();
+
+const formularioUsuario = document.getElementById("form-usuario");
+const formularioPassword = document.getElementById("form-cambiar-password");
+const selectorUsuario = document.getElementById("usuario-seleccionado");
+
+const cargarSelectorUsuarios = async () => {
+  selectorUsuario.disabled = true;
+  selectorUsuario.replaceChildren(new Option("Elegí un usuario", ""));
+
+  try {
+    const usuarios = await leerDatos(urlUsuarios);
+
+    for (const usuario of usuarios) {
+      const etiqueta = `${usuario.nombre} (${usuario.email})`;
+      selectorUsuario.add(new Option(etiqueta, usuario.id));
+    }
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo cargar la lista de usuarios.");
+  } finally {
+    selectorUsuario.disabled = false;
+  }
+};
+
+formularioUsuario.addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+
+  const datos = new FormData(formularioUsuario);
+  const nombre = datos.get("nombre").trim();
+  const email = datos.get("email").trim().toLowerCase();
+  const password = datos.get("password");
+  const role = datos.get("role");
+
+  if (!nombre || !password.trim()) {
+    alert("Completá el nombre y la contraseña.");
+    return;
+  }
+
+  const boton = formularioUsuario.querySelector('button[type="submit"]');
+  boton.disabled = true;
+
+  try {
+    const usuarios = await leerDatos(urlUsuarios);
+    const correoOcupado = usuarios.some(
+      (usuario) => usuario.email?.trim().toLowerCase() === email
+    );
+
+    if (correoOcupado) {
+      alert("Ese correo ya está registrado.");
+      return;
+    }
+
+    const respuesta = await fetch(urlUsuarios, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre, email, password, role })
+    });
+
+    if (!respuesta.ok) {
+      throw new Error(`Error al crear el usuario: ${respuesta.status}`);
+    }
+
+    formularioUsuario.reset();
+    alert("Usuario creado.");
+    await cargarSelectorUsuarios();
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo crear el usuario.");
+  } finally {
+    boton.disabled = false;
+  }
+});
+
+formularioPassword.addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+
+  const datos = new FormData(formularioPassword);
+  const id = datos.get("userId");
+  const password = datos.get("password");
+
+  if (!id || !password.trim()) {
+    alert("Elegí un usuario y escribí la nueva contraseña.");
+    return;
+  }
+
+  const boton = formularioPassword.querySelector('button[type="submit"]');
+  boton.disabled = true;
+
+  try {
+    const url = `${urlUsuarios}/${encodeURIComponent(id)}`;
+    const respuesta = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password })
+    });
+
+    if (!respuesta.ok) {
+      throw new Error(`Error al cambiar la contraseña: ${respuesta.status}`);
+    }
+
+    formularioPassword.reset();
+    alert("Contraseña actualizada.");
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo cambiar la contraseña.");
+  } finally {
+    boton.disabled = false;
+  }
+});
+
+cargarSelectorUsuarios();
 }
