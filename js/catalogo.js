@@ -191,7 +191,15 @@ formularioPostulacion.addEventListener("submit", async (evento) => {
 });
 
 const sesionCatalogo = JSON.parse(sessionStorage.getItem("sesion"));
+const haySesion = Boolean(sesionCatalogo);
+const botonCerrarSesion = document.getElementById("cerrar-sesion");
 
-document.getElementById("enlace-login").hidden = Boolean(sesionCatalogo);
-document.getElementById("enlace-registro").hidden = Boolean(sesionCatalogo);
+document.getElementById("enlace-login").hidden = haySesion;
+document.getElementById("enlace-registro").hidden = haySesion;
 document.getElementById("enlace-admin").hidden = sesionCatalogo?.role !== "ADMIN";
+botonCerrarSesion.hidden = !haySesion;
+
+botonCerrarSesion.addEventListener("click", () => {
+  sessionStorage.removeItem("sesion");
+  window.location.replace("login.html");
+});
